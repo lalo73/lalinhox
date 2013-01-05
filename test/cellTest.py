@@ -4,7 +4,7 @@ import unittest
 from mockito import *
 from hardware.memory import Cell
 
-class TestCell(unittest.TestCase):
+class CellTest(unittest.TestCase):
 
     def setUp(self):
         self.cell = Cell()
@@ -40,5 +40,5 @@ class TestCell(unittest.TestCase):
 
         self.assertFalse(self.cell.isInUse())
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCell)
+suite = unittest.TestLoader().loadTestsFromTestCase(CellTest)
 unittest.TextTestRunner(verbosity=2).run(suite)
