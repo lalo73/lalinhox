@@ -1,5 +1,10 @@
 *.py[cod]
-.idea
+
+# .idea files
+
+*.iws
+workspace.xml
+tasks.xml
 
 # C extensions
 *.so
