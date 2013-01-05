@@ -24,21 +24,21 @@ class Memory:
 
 class Cell:
     def __init__(self):
-        self.inUse=False
-        self.data=None
+        self.__inUse=False
+        self.__data=None
 
     def isInUse(self):
-        return self.inUse
+        return self.__inUse
 
     def write(self,data):
-        self.data=data
+        self.__data=data
 
     def read(self):
-        return self.data
+        return self.__data
 
     def onUse(self):
-        self.inUse=True
+        self.__inUse=True
 
     def free(self):
-        self.inUse=False
+        self.__inUse=False
 
