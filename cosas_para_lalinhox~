@@ -1,0 +1,10 @@
+from hardware.fileSystem import *
+
+file_1 = File("File_1","Data of file 1")
+file_2 = File("File_1",1024)
+file_3 = File("File_3")
+
+dir_1 = Directory("Dir_1")
+dir_2 = Directory("Dir_2")
+
+
