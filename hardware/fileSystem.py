@@ -12,6 +12,34 @@ class HardDisk:
         split_path = path.split("/")
         return self.__getObjectBySplitPath(split_path)
 
+    def mkDirectory(self, path):
+        split_path = path.split("/")
+        if split_path[-1] == "":
+            split_path = split_path[:-1]
+        if len(split_path) == 1:
+            if split_path[0] == "":
+                raise FilePathRequired()
+            else:
+                dir_name = split_path[0]
+                dir = self.root
+        else:
+            path = split_path[:-1]
+            dir_name = split_path[-1]
+            father_path = "/".join(path)
+            father_path += "/"
+            dir = self.getObjectByPath(father_path)
+        return self.__mkDirectoryOnDirectory(dir_name, dir)
+
+    def mkFile(self, path, data=None):
+        split_path = path.split("/")
+
+        pass
+
+    def __mkDirectoryOnDirectory(self, new_directory_name, directory):
+        dir = Directory(new_directory_name, self)
+        directory.addObject(dir)
+        return dir
+
     def __getObjectBySplitPath(self, split_path):
         last_object = self.root
         size = len(split_path)
@@ -41,7 +69,7 @@ class GeneralFileSystemObject(object):
     def __repr__(self):
         return "%(name)s" % {"name": self.name}
 
-    def __init__(self, name,father=None):
+    def __init__(self, name, father=None):
         checkFileSystemObjectName(name)
         self.setFather(father)
         self.name = name
@@ -64,10 +92,10 @@ class GeneralFileSystemObject(object):
     def include(self, object_name):
         raise IsNotDirectory()
 
-    def mkDir(self,name):
+    def mkDir(self, name):
         raise IsNotDirectory()
 
-    def removeObjectByName(self,name):
+    def removeObjectByName(self, name):
         raise IsNotDirectory()
 
     def listDir(self):
@@ -76,15 +104,16 @@ class GeneralFileSystemObject(object):
     def father(self):
         return self.__father
 
-    def setFather(self,newFather):
+    def setFather(self, newFather):
         self.__father = newFather
 
     def path(self):
         return self.father().path() + repr(self)
 
+
 class File(GeneralFileSystemObject):
-    def __init__(self, name, data=None,father=None):
-        super(File, self).__init__(name,father)
+    def __init__(self, name, data=None, father=None):
+        super(File, self).__init__(name, father)
         self.data = data
 
     def getData(self):
@@ -92,7 +121,6 @@ class File(GeneralFileSystemObject):
 
 
 class Directory(GeneralFileSystemObject):
-
     def __unicode__(self):
         return super(Directory, self).__repr__() + "/"
 
@@ -103,18 +131,18 @@ class Directory(GeneralFileSystemObject):
         return super(Directory, self).__repr__() + "/"
 
     def __init__(self, name, father=None):
-        super(Directory, self).__init__(name,father)
+        super(Directory, self).__init__(name, father)
         self.objects = {}
 
-    def mkDir(self,name):
-        dir = Directory(name,self)
+    def mkDir(self, name):
+        dir = Directory(name, self)
         self.addObject(dir)
         return dir
 
     def isDirectory(self):
         return True
 
-    def removeObjectByName(self,name):
+    def removeObjectByName(self, name):
         try:
             del(self.objects[name])
         except KeyError:
@@ -181,3 +209,8 @@ class IsNotDirectory(Exception):
 class IsNotFile(Exception):
     def __str__(self):
         return "This is not a file"
+
+
+class FilePathRequired(Exception):
+    def __str__(self):
+        return "A path is required"
