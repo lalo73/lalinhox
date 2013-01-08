@@ -41,8 +41,9 @@ class GeneralFileSystemObject(object):
     def __repr__(self):
         return "%(name)s" % {"name": self.name}
 
-    def __init__(self, name):
+    def __init__(self, name,father=None):
         checkFileSystemObjectName(name)
+        self.setFather(father)
         self.name = name
 
     def addObject(self, object):
@@ -63,13 +64,27 @@ class GeneralFileSystemObject(object):
     def include(self, object_name):
         raise IsNotDirectory()
 
-    def father(self):
+    def mkDir(self,name):
         raise IsNotDirectory()
 
+    def removeObjectByName(self,name):
+        raise IsNotDirectory()
+
+    def listDir(self):
+        raise IsNotDirectory()
+
+    def father(self):
+        return self.__father
+
+    def setFather(self,newFather):
+        self.__father = newFather
+
+    def path(self):
+        return self.father().path() + repr(self)
 
 class File(GeneralFileSystemObject):
-    def __init__(self, name, data=None):
-        super(File, self).__init__(name)
+    def __init__(self, name, data=None,father=None):
+        super(File, self).__init__(name,father)
         self.data = data
 
     def getData(self):
@@ -77,22 +92,42 @@ class File(GeneralFileSystemObject):
 
 
 class Directory(GeneralFileSystemObject):
+
+    def __unicode__(self):
+        return super(Directory, self).__repr__() + "/"
+
+    def __str__(self):
+        return super(Directory, self).__repr__() + "/"
+
+    def __repr__(self):
+        return super(Directory, self).__repr__() + "/"
+
     def __init__(self, name, father=None):
-        super(Directory, self).__init__(name)
-        self.__father = father
+        super(Directory, self).__init__(name,father)
         self.objects = {}
 
-    def father(self):
-        return self.__father
+    def mkDir(self,name):
+        dir = Directory(name,self)
+        self.addObject(dir)
+        return dir
 
     def isDirectory(self):
         return True
+
+    def removeObjectByName(self,name):
+        try:
+            del(self.objects[name])
+        except KeyError:
+            raise CantFindDirectoryOrFile()
+
+    def listDir(self):
+        return self.objects.keys()
 
     def addObject(self, object):
         name = object.name
         if object.isDirectory():
             name += "/"
-            object.father = self
+        object.setFather(self)
         self.objects[name] = object
 
     def getDirectory(self, name):
@@ -103,6 +138,11 @@ class Directory(GeneralFileSystemObject):
 
     def includes(self, object_name):
         return object_name in self.objects.keys()
+
+    def clear(self):
+        keys = self.objects.keys()
+        for key in keys:
+            self.removeObjectByName(key)
 
     def __getObjectByType(self, name, directory=True):
         def nameMatch(name, local_object_name, directory):
@@ -122,6 +162,9 @@ class Directory(GeneralFileSystemObject):
 class RootDirectory(Directory):
     def __init__(self, name="root"):
         super(RootDirectory, self).__init__(name, self)
+
+    def path(self):
+        return "/"
 
 #Exceptions
 
