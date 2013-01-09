@@ -1,22 +1,11 @@
 from hardware.fileSystem import *
 
-root = RootDirectory()
-
-file_1 = File("file_1","data of file 1")
-file_2 = File("file_2",1024)
-file_3 = File("file_3")
-
-dir_1 = Directory("dir_1",root)
-dir_2 = Directory("dir_2")
-
-dir_1.addObject(file_1)
-dir_1.addObject(file_2)
-dir_1.addObject(dir_2)
-root.addObject(dir_1)
-
-dir_2.addObject(file_3)
-
 disk = HardDisk()
-disk.root = root
+disk.mkDirectory("dir_1")
+disk.mkDirectory("dir_1/dir_2")
+disk.mkFile("dir_1/file_1","data of file 1")
+disk.mkFile("dir_1/file_2",1024)
+disk.mkFile("dir_1/dir_2/file_4")
+
 
 disk.getObjectByPath("dir_1/dir_2/")

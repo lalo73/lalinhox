@@ -13,6 +13,7 @@ class HardDisk:
         return self.__getObjectBySplitPath(split_path)
 
     def mkDirectory(self, path):
+        checkPathFormat(path)
         split_path = path.split("/")
         if split_path[-1] == "":
             split_path = split_path[:-1]
@@ -31,9 +32,26 @@ class HardDisk:
         return self.__mkDirectoryOnDirectory(dir_name, dir)
 
     def mkFile(self, path, data=None):
+        checkPathFormat(path)
         split_path = path.split("/")
+        if len(split_path) == 1:
+            if split_path[0] == "":
+                raise FilePathRequired()
+            else:
+                file_name = split_path[0]
+                dir = self.root
+        else:
+            path = split_path[:-1]
+            file_name = split_path[-1]
+            father_path = "/".join(path)
+            father_path += "/"
+            dir = self.getObjectByPath(father_path)
+        return self.__mkFileOnDirectory(file_name, dir)
 
-        pass
+    def __mkFileOnDirectory(self, file_name, dir):
+        file = File(file_name, dir)
+        dir.addObject(file)
+        return file
 
     def __mkDirectoryOnDirectory(self, new_directory_name, directory):
         dir = Directory(new_directory_name, self)
@@ -73,6 +91,9 @@ class GeneralFileSystemObject(object):
         checkFileSystemObjectName(name)
         self.setFather(father)
         self.name = name
+
+    def tree(self,father_base_space=0):
+        return " " * father_base_space + str(self)
 
     def addObject(self, object):
         raise IsNotDirectory()
@@ -133,6 +154,14 @@ class Directory(GeneralFileSystemObject):
     def __init__(self, name, father=None):
         super(Directory, self).__init__(name, father)
         self.objects = {}
+
+    def tree(self, father_base_space=0):
+        tree = " "* father_base_space + str(self)
+        base_space = " " * father_base_space + " " * len(str(self))
+        for obj in self.objects:
+            object_string = "\n" + self.objects[obj].tree(len(base_space))
+            tree += object_string
+        return str(tree)
 
     def mkDir(self, name):
         dir = Directory(name, self)
