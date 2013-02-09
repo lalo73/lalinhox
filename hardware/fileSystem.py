@@ -117,7 +117,7 @@ class GeneralFileSystemObject(object):
         raise IsNotDirectory()
 
     def removeObjectByName(self, name):
-        raise IsNotDirectory()
+        raise IsNotDirectory   ()
 
     def listDir(self):
         raise IsNotDirectory()

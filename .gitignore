@@ -1,7 +1,7 @@
 *.py[cod]
 
 # .idea files
-
+.idea
 *.iws
 workspace.xml
 tasks.xml
