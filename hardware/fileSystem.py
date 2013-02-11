@@ -51,13 +51,13 @@ class HardDisk:
 
     def __mkFileOnDirectory(self, file_name, directory, data=None):
         new_file = File(file_name, data, directory)
-        directory.addObject(file)
+        directory.add_object(file)
         return new_file
 
     def __mkDirectoryOnDirectory(self, new_directory_name, directory):
-        directory = Directory(new_directory_name, self)
-        directory.addObject(directory)
-        return directory
+        new_directory = Directory(new_directory_name, self)
+        directory.add_object(new_directory)
+        return new_directory
 
     def __getObjectBySplitPath(self, split_path):
         last_object = self.root
@@ -73,9 +73,9 @@ class HardDisk:
         if object_name == "":
             return last_object
         elif isDirectory:
-            return last_object.getDirectory(object_name)
+            return last_object.get_directory(object_name)
         else:
-            return last_object.getFile(object_name)
+            return last_object.get_file(object_name)
 
 
 class GeneralFileSystemObject(object):
@@ -157,41 +157,41 @@ class Directory(GeneralFileSystemObject):
 
     def mkDir(self, name):
         directory = Directory(name, self)
-        self.addObject(directory)
+        self.add_object(directory)
         return directory
 
     def is_directory(self):
         return True
 
-    def removeObjectByName(self, name):
+    def remove_object_by_name(self, name):
         try:
             del (self.objects[name])
         except KeyError:
             raise CantFindDirectoryOrFile()
 
-    def listDir(self):
+    def list_dir(self):
         return self.objects.keys()
 
-    def addObject(self, new_object):
+    def add_object(self, new_object):
         name = new_object.get_name()
         if new_object.is_directory():
             name += "/"
         new_object.set_father(self)
         self.objects[name] = new_object
 
-    def getDirectory(self, name):
+    def get_directory(self, name):
         return self.__getObjectByType(name)
 
-    def getFile(self, name):
+    def get_file(self, name):
         return self.__getObjectByType(name, False)
 
     def includes(self, object_name):
         return object_name in self.objects.keys()
 
-    def clear(self):
+    def clean(self):
         keys = self.objects.keys()
         for key in keys:
-            self.removeObjectByName(key)
+            self.remove_object_by_name(key)
 
     def __getObjectByType(self, name, directory=True):
         def nameMatch(name, local_object_name, directory):
