@@ -1,11 +1,70 @@
-class MMU:
-    def __init__(self, memory, hardDisk):
+class ContiguousAllocation(object):
+    def __init__(self, max_block_len=15):
+        self.max_block_len = max_block_len
+
+    def num_page_for(self, aPCB, instructions):
+        return 1
+
+    def max_block_len(self, aPCB, instructions):
+        return self.max_block_len
+
+
+class MMU(object):
+    def __init__(self, memory, hardDisk, strategy=ContiguousAllocation(10)):
         self.__memory = memory
         self.__pageTable = PageTable()
         self.__hardDisk = hardDisk
+        self.__strategy = strategy
+
+    def page_specifications(self, aPCB, instructions):
+        num_pages = self.num_page_for(aPCB, instructions)
+        max_block_len = self.max_block_len(aPCB, instructions)
+        return num_pages, max_block_len
+
+    def num_page_for(self, aPCB, instructions):
+        return self.__strategy.num_page_for(aPCB, instructions)
+
+    def max_block_len(self, aPCB, instructions):
+        return self.__strategy.max_block_len(aPCB, instructions)
+
+    def get_disk(self):
+        return self.__hardDisk
+
+    def get_program_from_disk(self, program_path):
+        disk = self.get_disk()
+        program_file = disk.getObjectByPath(program_path)
+        program = program_file.get_data()
+        return program
+
+    def paginate_instructions(self, instructions, max_block_len, num_pages):
+        instructions_copy = instructions[:]
+        paginated_instructions = []
+        for num_page in range(num_pages):
+            paginated_instructions.append(instructions_copy[:max_block_len])
+            instructions_copy = instructions_copy[max_block_len:]
+        return paginated_instructions
+
+    def write_in_memory_or_swap(self, instructions, page):
+        #TODO: Implement this!!
+        pass
 
     def add_PCB(self, aPCB):
-        pass
+        #Getting the instructions
+        program_path = aPCB.get_path()
+        program = self.get_program_from_disk(program_path)
+        instructions = program.get_instructions()
+
+        table_entry = self.__pageTable.create_page_entry(aPCB)
+        num_of_pages, max_block_len = self.page_specifications(aPCB, instructions)
+
+        #Separate in blocks of size "max_block_len" as max length
+        blocked_instructions = self.paginate_instructions(instructions, max_block_len, num_of_pages)
+        for page_number in range(num_of_pages):
+            instructions_to_memory = blocked_instructions[num_of_pages]
+            page = table_entry.create_page(page_number, 0, len(instructions_to_memory))
+            self.write_in_memory_or_swap(instructions_to_memory, page)
+
+    #TODO: implement "get_instruction(aPCB,pc)" and "get_index_(aPCB,pc)"
 
 
 class PageTable:
@@ -13,7 +72,9 @@ class PageTable:
         self.__pages_entries = {}
 
     def create_page_entry(self, aPCB):
-        self.__pages_entries[aPCB] = TableEntry()
+        table_entry = TableEntry()
+        self.__pages_entries[aPCB] = table_entry
+        return table_entry
 
     def get_table_entry(self, aPCB):
         table_entry = self.__pages_entries[aPCB]
@@ -66,7 +127,9 @@ class TableEntry:
         self.__pages = {}
 
     def create_page(self, page_number, base=0, length=0, swapped=True):
-        self.__pages[page_number] = Page(base, length, swapped)
+        page = Page(base, length, swapped)
+        self.__pages[page_number] = page
+        return page
 
     def get_page(self, page_number):
         try:
