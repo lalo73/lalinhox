@@ -1,7 +1,8 @@
 __author__ = 'leandro'
 
+
 class Memory:
-    def __init__(self,length=1024):
+    def __init__(self, length=1024):
         self.cells = []
         for i in range(length):
             self.cells.append(Cell())
@@ -13,64 +14,65 @@ class Memory:
         #Return the size of the memory or number of cells
         return len(self)
 
-    def cellAt(self,index):
+    def cell_at(self, index):
         #Returns the cell at position 'index'
         try:
             return self.cells[index]
         except IndexError:
             raise OutOfRange()
 
-    def write(self,index,data):
+    def write(self, index, data):
         #Writes the 'data' in cell at position 'index'
-        cell = self.cellAt(index)
+        cell = self.cell_at(index)
         cell.write(data)
 
-    def onUse(self,index):
+    def set_in_use(self, index):
         #Sets on use the cell at position 'index'
-        cell = self.cellAt(index)
-        cell.onUse()
+        cell = self.cell_at(index)
+        cell.set_in_use()
 
-    def release(self,index):
+    def release(self, index):
         #See 'free' method
         self.free(index)
 
-    def free(self,index):
+    def free(self, index):
         #Release the cell at position 'index'
-        cell = self.cellAt(index)
+        cell = self.cell_at(index)
         cell.free()
 
-    def read(self,index):
+    def read(self, index):
         #Returns the data of the cell at positioin 'index'
-        cell =  self.cellAt(index)
+        cell = self.cell_at(index)
         return cell.read()
 
-    def isInUse(self,index):
+    def isInUse(self, index):
         """
         Returns True if the cell at position 'index' has been setted as 'onUse',
           otherwise returns False
         """
-        cell = self.cellAt(index)
-        return cell.isInUse()
+        cell = self.cell_at(index)
+        return cell.is_in_use()
+
 
 class Cell:
     def __init__(self):
-        self.__inUse=False
-        self.__data=None
+        self.__in_use = False
+        self.__data = None
 
-    def isInUse(self):
-        return self.__inUse
+    def is_in_use(self):
+        return self.__in_use
 
-    def write(self,data):
-        self.__data=data
+    def write(self, data):
+        self.__data = data
 
     def read(self):
         return self.__data
 
-    def onUse(self):
-        self.__inUse=True
+    def set_in_use(self):
+        self.__in_use = True
 
     def free(self):
-        self.__inUse=False
+        self.__in_use = False
 
 #Exceptions
 
