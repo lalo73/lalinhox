@@ -135,10 +135,10 @@ class File(GeneralFileSystemObject):
 
 class Directory(GeneralFileSystemObject):
     def __unicode__(self):
-        return super(Directory, self).__repr__() + "/"
+        return super(Directory, self).__unicode__() + "/"
 
     def __str__(self):
-        return super(Directory, self).__repr__() + "/"
+        return super(Directory, self).__str__() + "/"
 
     def __repr__(self):
         return super(Directory, self).__repr__() + "/"

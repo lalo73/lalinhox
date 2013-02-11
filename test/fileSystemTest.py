@@ -1,5 +1,5 @@
 import unittest
-from hardware.fileSystem import File
+from hardware.fileSystem import File, Directory
 from mockito import *
 
 
@@ -32,6 +32,23 @@ class FileTest(unittest.TestCase):
         father = self.directory_father
         self.assertTrue(father, self.file.get_father())
 
+    def test_is_file(self):
+        is_file = self.file.is_file()
+        self.assertTrue(is_file)
+
+    def test_is_not_directory(self):
+        is_directory = self.file.is_directory()
+        self.assertFalse(is_directory)
+
+    def test_tree(self):
+        tree = self.file.tree()
+        self.assertEqual(tree, self.file.get_name())
+
+
+class DirectoryTest(unittest.TestCase):
+    def setUp(self):
+        mock_root = mock()
+        self.directory = Directory("directory_test", mock_root)
 
 
 
