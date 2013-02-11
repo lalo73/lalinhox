@@ -5,42 +5,55 @@ class MMU:
         self.__hardDisk = hardDisk
 
     def add_PCB(self, aPCB):
-        program_path = aPCB.path
-        program = self.get_program(program_path)
-        instructions = program.instructions
-        self.save_instructions(aPCB, instructions)
-
-    def get_program(self, program_path):
-        disk = self.__hardDisk
-        program = disk.getObjectByPath(program_path)
-        return program
-
-    def get_memory(self):
-        return self.__memory
-
-    def get_instruction(self, aPCB, pc):
         pass
-
-    def save_instruction(self, aPCB, instructions):
-        program_length = len(instructions)
-        self.create_table_entry(aPCB, program_length)
-        self.write_instructions(aPCB, instructions)
-
-    def create_tableEntry(self, aPCB, program_length):
-        strategy = self.strategy()
-        strategy.createTableEntry(aPCB, program_length)
-
-
-class contiguousAllocation:
-    def save_instructions(self, aPCB, instructions, mmu):
-        necessary_length_block = len(instructions)
 
 
 class PageTable:
     def __init__(self):
         self.__pages_entries = {}
 
-    
+    def create_page_entry(self, aPCB):
+        self.__pages_entries[aPCB] = TableEntry()
+
+    def get_table_entry(self, aPCB):
+        table_entry = self.__pages_entries[aPCB]
+        return table_entry
+
+    def create_page(self, aPCB, page_number, base=0, length=0, swapped=True):
+        table_entry = self.get_table_entry(aPCB)
+        table_entry.create_page(page_number, base, length, swapped)
+
+    def get_page(self, aPCB, page_number):
+        table_entry = self.get_table_entry(aPCB)
+        return table_entry.get_page(page_number)
+
+    def set_base(self, aPCB, page_number, new_base):
+        page = self.get_page(aPCB, page_number)
+        page.set_base(new_base)
+
+    def get_base(self, aPCB, page_number):
+        page = self.get_page(aPCB, page_number)
+        return page.get_base()
+
+    def set_length(self, aPCB, page_number, new_length):
+        page = self.get_page(aPCB, page_number)
+        page.set_length(new_length)
+
+    def get_length(self, aPCB, page_number):
+        page = self.get_page(aPCB, page_number)
+        return page.get_length()
+
+    def swap(self, aPCB, page_number):
+        page = self.get_page(aPCB, page_number)
+        page.swap()
+
+    def unswap(self, aPCB, page_number):
+        page = self.get_page(aPCB, page_number)
+        page.unswap()
+
+    def is_swapped(self, aPCB, page_number):
+        page = self.get_page(aPCB, page_number)
+        return page.is_swapped()
 
 
 class DoesntExistPage(Exception):
