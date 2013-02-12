@@ -1,31 +1,80 @@
+from hardware.fileSystem import HardDisk
+
+
 class ContiguousAllocation(object):
+    def num_page_for(self, instructions):
+        return 1
+
+    def max_block_len(self, instructions):
+        return len(instructions)
+
+    def there_is_space_for(self, mmu, instructions):
+        pass
+
+    def get_base_for_instructions(self, instructions, mmu):
+        memory = mmu.get_memory()
+        counting = False
+        instructions_length = len(instructions)
+        current_block_length = 0
+        current_base = None
+        current_index = 0
+        while current_block_length < instructions_length:
+            if memory.is_in_use(current_index):
+                counting = False
+                current_base = None
+                current_block_length = 0
+            else:
+                if not counting:
+                    counting = True
+                    current_base = current_index
+                current_block_length += 1
+            current_index += 1
+        return current_base
+
+
+class Pagination(object):
     def __init__(self, max_block_len=15):
         self.max_block_len = max_block_len
 
-    def num_page_for(self, aPCB, instructions):
-        return 1
+    def num_page_for(self, instructions):
+        num_instructions = len(instructions)
+        num_pages = num_instructions / self.max_block_len
+        if num_instructions % self.max_block_len > 0:
+            num_pages += 1
+        return num_pages
 
-    def max_block_len(self, aPCB, instructions):
+    def max_block_len(self, instructions):
         return self.max_block_len
 
 
 class MMU(object):
-    def __init__(self, memory, hardDisk, strategy=ContiguousAllocation(10)):
+    def __init__(self, memory, hardDisk=HardDisk(), strategy=ContiguousAllocation(), swapped_location="/mmu_files/"):
         self.__memory = memory
         self.__pageTable = PageTable()
         self.__hardDisk = hardDisk
         self.__strategy = strategy
+        self.__swapped_location = swapped_location
+        hardDisk.mkDirectory(swapped_location)
 
-    def page_specifications(self, aPCB, instructions):
-        num_pages = self.num_page_for(aPCB, instructions)
-        max_block_len = self.max_block_len(aPCB, instructions)
+    def get_memory(self):
+        return self.__memory
+
+    def get_hardDisk(self):
+        return self.__hardDisk
+
+    def swapped_instructions_location(self):
+        return self.__swapped_location
+
+    def page_specifications(self, instructions):
+        num_pages = self.num_page_for(instructions)
+        max_block_len = self.max_block_len(instructions)
         return num_pages, max_block_len
 
-    def num_page_for(self, aPCB, instructions):
-        return self.__strategy.num_page_for(aPCB, instructions)
+    def num_page_for(self, instructions):
+        return self.__strategy.num_page_for(instructions)
 
-    def max_block_len(self, aPCB, instructions):
-        return self.__strategy.max_block_len(aPCB, instructions)
+    def max_block_len(self, instructions):
+        return self.__strategy.max_block_len(instructions)
 
     def get_disk(self):
         return self.__hardDisk
@@ -44,9 +93,34 @@ class MMU(object):
             instructions_copy = instructions_copy[max_block_len:]
         return paginated_instructions
 
-    def write_in_memory_or_swap(self, instructions, page):
-        #TODO: Implement this!!
-        pass
+    def there_is_space_for(self, instructions):
+        return self.__strategy.there_is_space_for(instructions, self)
+
+    def get_base_for_instructions(self, instructions):
+        return self.__strategy.get_base_for_instructions(instructions, self)
+
+    def write_in_memory_or_swap(self, instructions, page, page_number, aPCB):
+        if self.there_is_space_for(instructions):
+            base = self.get_base_for_instructions(instructions)
+            memory = self.__memory
+            count = 0
+            for instruction in instructions:
+                memory.write(base + count, instruction)
+                count += 1
+            page.set_base(base)
+            page.set_length(len(instructions))
+            page.unswap()
+        else:
+            disk = self.__hardDisk
+            swapped_instructions_path = self.swapped_instructions_location()
+            pcb_directory_path = swapped_instructions_path + str(aPCB.get_id()) + "/"
+            if not disk.exist(pcb_directory_path):
+                disk.mkDirectory(pcb_directory_path)
+
+            file_name = str(page_number)
+            file_path = pcb_directory_path + file_name
+            disk.mkFile(file_path, instructions)
+            page.swap()
 
     def add_PCB(self, aPCB):
         #Getting the instructions
@@ -55,16 +129,16 @@ class MMU(object):
         instructions = program.get_instructions()
 
         table_entry = self.__pageTable.create_page_entry(aPCB)
-        num_of_pages, max_block_len = self.page_specifications(aPCB, instructions)
+        num_of_pages, max_block_len = self.page_specifications(instructions)
 
         #Separate in blocks of size "max_block_len" as max length
         blocked_instructions = self.paginate_instructions(instructions, max_block_len, num_of_pages)
         for page_number in range(num_of_pages):
             instructions_to_memory = blocked_instructions[num_of_pages]
             page = table_entry.create_page(page_number, 0, len(instructions_to_memory))
-            self.write_in_memory_or_swap(instructions_to_memory, page)
+            self.write_in_memory_or_swap(instructions_to_memory, page, page_number, aPCB)
 
-    #TODO: implement "get_instruction(aPCB,pc)" and "get_index_(aPCB,pc)"
+            #TODO: implement "get_instruction(aPCB,pc)" and "get_index_(aPCB,pc)"
 
 
 class PageTable:
@@ -202,13 +276,9 @@ class Page:
         return self.__swapped
 
     def swap(self):
-        if self.is_swapped():
-            raise AlreadySwappedPageException()
         self.__swapped = True
 
     def unswap(self):
-        if not self.is_swapped():
-            raise AlreadyUnswappedPageException()
         self.__swapped = False
 
 

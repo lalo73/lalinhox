@@ -1,7 +1,4 @@
-__author__ = 'leandro'
-
 from system_tools.systemTools import checkFileSystemObjectName, checkPathFormat
-
 
 class HardDisk:
     def __init__(self, name="HardDisk"):
@@ -12,6 +9,13 @@ class HardDisk:
         checkPathFormat(path)
         split_path = path.split("/")
         return self.__getObjectBySplitPath(split_path)
+
+    def exist(self, path):
+        try:
+            self.getObjectByPath(path)
+            return True
+        except CantFindDirectoryOrFile:
+            return False
 
     def mkDirectory(self, path):
         checkPathFormat(path)
@@ -236,3 +240,5 @@ class IsNotFile(Exception):
 class FilePathRequired(Exception):
     def __str__(self):
         return "A path is required"
+
+__author__ = 'leandro'
