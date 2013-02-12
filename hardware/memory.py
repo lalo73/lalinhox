@@ -41,13 +41,13 @@ class Memory:
         cell.free()
 
     def read(self, index):
-        #Returns the data of the cell at positioin 'index'
+        #Returns the data of the cell at position 'index'
         cell = self.cell_at(index)
         return cell.read()
 
-    def isInUse(self, index):
+    def is_in_use(self, index):
         """
-        Returns True if the cell at position 'index' has been setted as 'onUse',
+        Returns True if the cell at position 'index' has been set as 'in_use',
           otherwise returns False
         """
         cell = self.cell_at(index)
